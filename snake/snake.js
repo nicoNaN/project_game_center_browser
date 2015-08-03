@@ -3,17 +3,22 @@
 var view = {
   init: function() {
     this.attachDirListener();
-    this.render();
+    setInterval(function() {
+      view.render();
+    }, 500);
   },
 
   render: function() {
-    var totalScore = model.getScore();
-    $("#score").text(totalScore);
+    this.clearField();
     this.drawBoard();
     this.placeFood();
-    setInterval(function() {
-      view.drawSnake(model.getCurrentDirection());
-    }, 1000);
+    var totalScore = model.getScore();
+    $("#score").text(totalScore);
+    this.drawSnake(model.getCurrentDirection());
+  },
+
+  clearField: function() {
+    $('#snake-grid').html("")
   },
 
   drawBoard: function() {
@@ -30,29 +35,39 @@ var view = {
   },
 
   placeFood: function() {
+    $("div[data-y='" + model.foodLoc.y + "'] div[data-x='" + model.foodLoc.x + "']").addClass( 'food' );
+  },
+
+  randomizeFoodLoc: function() {
     var randx = Math.floor((Math.random() * 10 ) + 1);
     var randy = Math.floor((Math.random() * 10 ) + 1);
 
-    var row = $(".row[data-y=" + randy + "]");
-    $(row).children().eq(randx-1).addClass('food');
+
+    return { x: randx, y: randy };
+  },
+
+  clearFood: function() {
+    $('.food').removeClass('food');
   },
 
   drawSnake: function(direction) {
-    var prevPos = $("div[data-y=" + model.getSnakeY() + "] div[data-x=" + model.getSnakeX() + "]");
+    model.snakeBody.push($.extend({}, model.snakeHead));
 
-    if (direction == "up") {
-      model.moveUp();
-    } else if (direction == "down") {
-      model.moveDown();
-    } else if (direction == "left") {
-      model.moveLeft();
-    } else if (direction == "right") {
-      model.moveRight();
-    };
+    model.makeMove(direction);
 
-    var currentPos = $("div[data-y=" + model.getSnakeY() + "] div[data-x=" + model.getSnakeX() + "]");
-    $(prevPos).removeClass("snake");
-    $(currentPos).addClass("snake");
+    if (model.ateFood()) {
+      view.clearFood();
+      model.foodLoc = view.randomizeFoodLoc();
+      model.totalScore++;
+      view.placeFood();
+    } else {
+      model.snakeBody.shift();
+    }
+
+    $("div[data-y='" + model.snakeHead.y + "'] div[data-x='" + model.snakeHead.x + "']").addClass( 'snake' );
+    model.snakeBody.forEach(function(section){
+      $("div[data-y='" + section.y + "'] div[data-x='" + section.x + "']").addClass( 'snake' );
+    });
 
   },
 
@@ -73,8 +88,17 @@ var view = {
 
 var model = {
 
-  snakeX: 1,
-  snakeY: 10,
+  snakeBody: [],
+
+  snakeHead: {
+    x: 1,
+    y: 10
+  },
+
+  foodLoc: {
+    x: 1,
+    y: 3
+  },
 
   currentDirection: "up",
 
@@ -82,19 +106,37 @@ var model = {
   totalScore: 0,
 
   moveUp: function() {
-    this.snakeY--;
+    this.snakeHead.y--;
   },
 
   moveDown: function() {
-    this.snakeY++;
+    this.snakeHead.y++;
   },
 
   moveLeft: function() {
-    this.snakeX--;
+    this.snakeHead.x--;
   },
 
   moveRight: function() {
-    this.snakeX++;
+    this.snakeHead.x++;
+  },
+
+  makeMove: function(direction) {
+    if (direction == "up") {
+      this.moveUp();
+    } else if (direction == "down") {
+      this.moveDown();
+    } else if (direction == "left") {
+      this.moveLeft();
+    } else if (direction == "right") {
+      this.moveRight();
+    };
+  },
+
+  ateFood: function() {
+    var foodCoords = JSON.stringify({ x: model.foodLoc.x, y: model.foodLoc.y });
+    var snakeCoords = JSON.stringify(model.snakeHead);
+    return snakeCoords == foodCoords;
   },
 
   getScore: function() {
@@ -106,15 +148,11 @@ var model = {
   },
 
   getSnakeX: function() {
-    return this.snakeX;
+    return this.snakeHead.x;
   },
 
   getSnakeY: function() {
-    return this.snakeY;
-  },
-
-  addSnakeX: function() {
-    this.snakeX++;
+    return this.snakeHead.y;
   }
 };
 
