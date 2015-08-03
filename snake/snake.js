@@ -2,14 +2,18 @@
 
 var view = {
   init: function() {
+    this.attachDirListener();
     this.render();
   },
 
   render: function() {
-    var totalScore = controller.getScore();
+    var totalScore = model.getScore();
     $("#score").text(totalScore);
     this.drawBoard();
     this.placeFood();
+    setInterval(function() {
+      view.drawSnake(model.getCurrentDirection());
+    }, 1000);
   },
 
   drawBoard: function() {
@@ -31,50 +35,86 @@ var view = {
 
     var row = $(".row[data-y=" + randy + "]");
     $(row).children().eq(randx-1).addClass('food');
+  },
+
+  drawSnake: function(direction) {
+    var prevPos = $("div[data-y=" + model.getSnakeY() + "] div[data-x=" + model.getSnakeX() + "]");
+
+    if (direction == "up") {
+      model.moveUp();
+    } else if (direction == "down") {
+      model.moveDown();
+    } else if (direction == "left") {
+      model.moveLeft();
+    } else if (direction == "right") {
+      model.moveRight();
+    };
+
+    var currentPos = $("div[data-y=" + model.getSnakeY() + "] div[data-x=" + model.getSnakeX() + "]");
+    $(prevPos).removeClass("snake");
+    $(currentPos).addClass("snake");
+
+  },
+
+  attachDirListener: function(){
+    $(window).keydown(function(press){
+      if(press.which === 38){
+         controller.setCurrentDirection("up");
+      } else if(press.which === 40){
+         controller.setCurrentDirection("down");
+      } else if(press.which === 37){
+         controller.setCurrentDirection("left");
+      } else if(press.which === 39){
+         controller.setCurrentDirection("right");
+      }
+    });
   }
 };
 
 var model = {
+
+  snakeX: 1,
+  snakeY: 10,
+
+  currentDirection: "up",
+
   gridSize: 10,
   totalScore: 0,
+
+  moveUp: function() {
+    this.snakeY--;
+  },
+
+  moveDown: function() {
+    this.snakeY++;
+  },
+
+  moveLeft: function() {
+    this.snakeX--;
+  },
+
+  moveRight: function() {
+    this.snakeX++;
+  },
 
   getScore: function() {
     return this.totalScore;
   },
 
-  totalCards: function() {
-    return model.gridSize * model.gridSize;
+  getCurrentDirection: function() {
+    return this.currentDirection;
   },
 
-  createCardVals: function() {
-    return model.shuffle(model.generateVals());
+  getSnakeX: function() {
+    return this.snakeX;
   },
 
-  generateVals: function() {
-    var arr = [];
-    var pairs = model.totalCards() / 2;
-
-    for (var i = 0; i < pairs; i++) {
-      var num = Math.floor((Math.random() * 50 ) + 1);
-      arr.push(num);
-      arr.push(num);
-    }
-
-    return arr;
+  getSnakeY: function() {
+    return this.snakeY;
   },
 
-  shuffle: function(array) {
-    var currentIndex = array.length, temporaryValue, randomIndex;
-
-    while (0 !== currentIndex) {
-      randomIndex = Math.floor(Math.random() * currentIndex);
-      currentIndex -= 1;
-
-      temporaryValue = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temporaryValue;
-    }
-    return array;
+  addSnakeX: function() {
+    this.snakeX++;
   }
 };
 
@@ -83,32 +123,8 @@ var controller = {
     view.init();
   },
 
-  getScore: function() {
-    return model.getScore();
-  },
-
-  parseClick: function(card) {
-    var faceUp = $(".face-up").length;
-
-    if (faceUp < 2) {
-      $(card).addClass('face-up').removeClass('face-down');
-    } else if (faceUp == 2) {
-      var $visibleCards = $('.face-up');
-
-      if ($visibleCards.first().text() == $visibleCards.last().text()) {
-        $visibleCards.each(function() {
-          $(this).addClass('match').removeClass('face-up').off('click');
-        });
-        model.totalScore++;
-        $("#score").text(model.totalScore);
-      } else {
-        setTimeout(function() {
-          $visibleCards.each(function() {
-            $(this).removeClass('face-up');
-          });
-        }, 1000);
-      }
-    }
+  setCurrentDirection: function(dir) {
+    model.currentDirection = dir;
   }
 };
 
