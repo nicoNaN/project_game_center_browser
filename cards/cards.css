@@ -1,0 +1,38 @@
+#card-grid {
+  width: 600px;
+}
+
+.row {
+  clear: left;
+}
+
+.card {
+  width: 50px;
+  height: 80px;
+  border: 1px solid black;
+  float: left;
+  margin: 5px;
+  background-color: orange;
+}
+
+.match {
+  background-color: green;
+}
+
+.match .value {
+  display: block;
+  color: white;
+}
+
+.value {
+  display: none;
+}
+
+.face-up {
+  background-color: white;
+}
+
+.face-up .value {
+  display: block;
+  color: purple;
+}
