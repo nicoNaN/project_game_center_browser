@@ -2,48 +2,40 @@
 
 var view = {
   init: function() {
-    while(model.gridSize % 2 == 1) {
-      model.gridSize = prompt("Enter an EVEN number to begin!", "4");
-    }
-
-    $("#card-grid").on('click', '.card', (function() {
-      controller.parseClick(this);
-    }));
-
     this.render();
   },
 
   render: function() {
     var totalScore = controller.getScore();
     $("#score").text(totalScore);
-    this.drawCards(model.gridSize);
+    this.drawBoard();
+    this.placeFood();
   },
 
-  drawCards: function(numCards) {
-    for (var i = 0; i < numCards; i++) {
-      this.addRow($("#card-grid"), model.gridSize);
+  drawBoard: function() {
+    for (var i = 1; i <= model.gridSize; i++) {
+      this.addRowsCols($("#snake-grid"), model.gridSize, i);
     }
   },
 
-  insertCardVals: function(cardVals) {
-    var $cards = $(".card");
-
-    $cards.each(function() {
-      var val = cardVals.pop();
-      $(this).html("<div class='value'>" + val + "</div>");
-    });
+  addRowsCols: function(board, numColumns, rowVal) {
+    board.append("<div class='row'" + " data-y=" + rowVal + "></div>");
+    for (var i = 1; i <= numColumns; i++) {
+      $("#snake-grid .row").last().append("<div class='col'" + " data-x=" + i + "></div>");
+    }
   },
 
-  addRow: function(cardGrid, numColumns) {
-    cardGrid.append("<div class='row'></div>");
-    for (var i = 0; i < numColumns; i++) {
-      $("#card-grid .row").last().append("<div class='card face-down'></div>");
-    }
+  placeFood: function() {
+    var randx = Math.floor((Math.random() * 10 ) + 1);
+    var randy = Math.floor((Math.random() * 10 ) + 1);
+
+    var row = $(".row[data-y=" + randy + "]");
+    $(row).children().eq(randx-1).addClass('food');
   }
 };
 
 var model = {
-  gridSize: 1,
+  gridSize: 10,
   totalScore: 0,
 
   getScore: function() {
@@ -89,7 +81,6 @@ var model = {
 var controller = {
   init: function() {
     view.init();
-    view.insertCardVals(model.createCardVals());
   },
 
   getScore: function() {
