@@ -3,9 +3,7 @@
 var view = {
   init: function() {
     this.attachDirListener();
-    setInterval(function() {
-      view.render();
-    }, 500);
+    view.render();
   },
 
   render: function() {
@@ -153,12 +151,25 @@ var model = {
 
   getSnakeY: function() {
     return this.snakeHead.y;
+  },
+
+  hitWall: function() {
+    return (model.snakeHead.x > model.gridSize ||
+            model.snakeHead.x < 1 ||
+            model.snakeHead.y < 1 ||
+            Math.abs(model.snakeHead.y) > model.gridSize)
   }
 };
 
 var controller = {
   init: function() {
-    view.init();
+    setInterval(function() {
+      if (model.hitWall()) {
+        console.log("u ded");
+      } else {
+        view.init();
+      }
+    }, 500);
   },
 
   setCurrentDirection: function(dir) {
